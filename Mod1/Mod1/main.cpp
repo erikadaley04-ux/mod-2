@@ -1,16 +1,20 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <cctype>
-using namespace std;
+#include <string>     // For filenames and opName
+#include <iomanip>    // For setprecision
+#include <stdexcept>  // For runtime_error
+#include <algorithm>  // For std::sort() and std::swap()
+#include <list>
+#include <string>
+#include <numeric>
 
-//return type - function name - parameter
-//& - function recieves memory addresses and changes origional variables
 void displaymenu(int&); //uses passby refrence to update user selection
 void selectIO(char&, char&); // returns two seperate characters
-int getInput(char&, double&, double&, ifstream&);//reads data from file and returns status indicator
+int getInput(char&, double&, double&, std::fstream&);//reads data from file and returns status indicator
 double calculate(int&, char&, double&, double&);// returns as a double while updating 4 other variables
-int sendOutput(char&, double&, char&, double&, double&, ofstream&); //logs reports to a file
+int sendOutput(char&, double&, char&, double&, double&, std::fstream&); //logs reports to a file
 
 //calculation fcns
 //return type - function(parameters)
@@ -26,126 +30,101 @@ double min(const double list[], int size);
 double max(const double list[], int size);
 
 
+using namespace std;
 
-int main(int argc, const char * argv[]) {
-
-    int choiceType, size; // Use int for menu choice
+int main() {
+    int choiceType, size = 0; // Use int for menu choice
     double num1 = 0, num2 = 0, result = 0;
     char repeat = 'y';
     
-
     const int MAX_SIZE = 100; // The physical limit of the array
     double list[MAX_SIZE]; // Create the array with enough spaces
-    int count;
-
-
-
+    //int count;
+    
+    const int colWidth = 15; // Width for each column
+    
     do {
-        cout << "--Calculator menu--" << endl;
-        cout << "choose function type: \n (1) basic \n (2) statistical \n (3) exit " << endl;
+        cout << "===============================================" << endl;
+        cout << "            C++ ALGORITHM TOOLKIT              " << endl;
+        cout << "===============================================" << endl;
+        
+        // Header Row
+        cout << left << setw(colWidth) << "  [ BASIC ]"
+        << setw(colWidth) << "[ STATS ]"
+        << setw(colWidth) << "[ SORT/SEARCH ]" << endl;
+        
+        // Menu Options
+        cout << left << setw(colWidth) << "  1. Add"      << setw(colWidth) << "6. Sum"     << setw(colWidth) << "11. Bubble" << endl;
+        cout << left << setw(colWidth) << "  2. Sub"      << setw(colWidth) << "7. Mean"    << setw(colWidth) << "12. Select" << endl;
+        cout << left << setw(colWidth) << "  3. Mult"     << setw(colWidth) << "8. Median"  << setw(colWidth) << "13. Linear" << endl;
+        cout << left << setw(colWidth) << "  4. Div"      << setw(colWidth) << "9. Min"     << setw(colWidth) << "14. Binary" << endl;
+        cout << left << setw(colWidth) << "  5. Max"      << setw(colWidth) << "10. Exit"   << endl;
+        
+        cout << "-----------------------------------------------" << endl;
         cin >> choiceType;
-
-        if(choiceType == 3) {
-            cout << "thanks, bye!" << endl;
+        // TODO: display user choice - cout << string << endl; ??
+        if (choiceType == 10) {
+            cout << endl << "Thank you for using the Simple Calculator!" << endl;
+            cout << "\n----------------------------------------" << endl;
             break;
         }
-
-        if(choiceType == 1) {
-           
-            cout << "Choose an operation: " << endl;
-            cout << " 1. add \n 2. subtract \n 3. multiply \n 4. divide \n 5. exit" << endl;
-            //cout << " 5. sum \n 6. mean \n 7. median \n 8. min \n 9. max \n 10. exit." << endl;
-            cin >> choiceType;
-            //exits program if user selects 10
-            if(choiceType == 5) {
-                cout << "Have a good day!" << endl;
-                break;
-            }
-            // basic math
-            if (choiceType >= 1 && choiceType <= 4) {
-                cout << "Enter two numbers separated by a space: ";
-                cin >> num1 >> num2;
-
-                switch(choiceType) {
-                case 1:
-                    result = add(num1, num2);
-                    break;
-                case 2:
-                    result = subtract(num1, num2);
-                    break;
-                case 3:
-                    result = multiply(num1, num2);
-                    break;
+        
+        if (choiceType >= 1 && choiceType <= 4){
+            cout << "Enter two numbers separated by a space: ";
+            cin >> num1 >> num2;
+            
+            //Basic
+            switch(choiceType) {
+                case 1: result = add(num1, num2); break;
+                case 2: result = subtract(num1, num2); break;
+                case 3: result = multiply(num1, num2); break;
                 case 4:
                     if (num2 != 0) result = divide(num1, num2);
                     else {
                         cout << "Divide by zero error!" << endl;
-                result = 0;
-                        cout << "would you like to preform another calculation?" << endl;
-                        
-                        //                    break;
-                        
                     }
-                }
             }
-            cout << "Result = " << result << endl;
-        }while(choiceType == 1);
-    } while(choiceType >= 1 && choiceType <=4);
-
-
-    // stactistical math
-    do {
-    if (choiceType == 2) {
-        cout << "How many numbers? ";
-        cin >> size;
-
-        if(size > MAX_SIZE) size = MAX_SIZE;
-
-        cout << "Enter the list of numbers seperated by a space: " << endl;
-        for (int i = 0; i < size; i++) {
-            cin >> list[i]; // Fills the array index by index
-        }
-
-        switch(choiceType) {
-        case 5:
-            result = sum(list, size);
-            break;
-        case 6:
-            result = mean(list, size);
-            break;
-        case 7:
-            result = median(list, size);
-            break;
-        case 8:
-            result = min(list, size);
-            break;
-        case 9:
-            result = max(list, size);
-            break;
-
-        default:
-            cout << "Invalid input, please choose a number 5-10" << endl;
-
         }
         
-    } while(choiceType == 2);
+        //Stats
+            if (choiceType >= 4 && choiceType <= 9) {
+            cout << "How many numbers? ";
+            cin >> size;
+            
+            if(size > MAX_SIZE) size = MAX_SIZE;
+            cout << "Enter the list of numbers seperated by a space: " << endl;
+            for (int i = 0; i < size; i++) {
+                cin >> list[i]; // Fills the array index by index
+            }
+            switch(choiceType){
+                case 5: result = max(list, size); break;
+                case 6: result = sum(list, size); break;
+                case 7: result = mean(list, size); break;
+                case 8: result = median(list, size); break;
+                case 9: result = min(list, size); break;
+            }
+             
+            cout << "Result = " << result << endl;
+            cout << "would you like to preform another calculation?" << endl;
+            cin >> repeat;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // clear Buffer
+            
+                if (tolower(repeat) == 'n') {
+                    choiceType = 10;
+                }
+            }
+        } while (choiceType != 10);
+        
+        
+        cout << "\n========================================" << endl;
+        cout << "  Goodbye!" << endl;
+        cout << "========================================" << endl;
+        
+        return 0;
+    }
 
-        break;
-    do {
-        cout << "Would you like to perform another calculation? (y/n): ";
-        cin >> repeat;
-        break;
-    } while (tolower(repeat) == 'y');
-    
 
-    cout << "thanks, bye!" << endl;
-
-}while(tolower(repeat) == 'y');
-
-return 0;
-}
-
-// Basic Function Definitions
+//Basic
 double add(double a, double b) {
     return a + b;
 }
@@ -155,30 +134,42 @@ double subtract(double a, double b) {
 double multiply(double a, double b) {
     return a * b;
 }
-double divide(double a, double b) {
-    return a / b;
+    double divide(double a, double b) {
+        return a / b;
 }
-
-//Statistical Function Definitions
+    //Stats
 double sum(const double arr[], int size) {
-    double total = 0; // Initialize sum at 0
-    for (int i = 0; i < size; i++) {
-        total += arr[i]; // Add current element to total
+        double total = 0; // Initialize sum at 0
+        for (int i = 0; i < size; i++) {
+            total += arr[i]; // Add current element to total
+        }
+        return total;
     }
-    return total;
-}
 
 double mean(const double list[], int size) {
-    return 0;
-} // mean
+    if (size == 0) return 0; // Prevent division by zero
+    return sum(list, size) / size;
+    } // mean
+
 double median(double list[], int size) {
-    return 0;
-} // median
+    std::sort(list, list + size);
+    if (size % 2 != 0) // Odd
+        return list[size / 2];
+    else // Even
+        return (list[(size - 1) / 2] + list[size / 2]) / 2.0;
+}
 double min(const double list[], int size) {
-    return 0;
-} // min
+    double small = list[0];
+    for (int i = 1; i < size; i++) {
+        if (list[i] < small) small = list[i];
+    }
+    return small;
+}
+
 double max(const double list[], int size) {
-    return 0;
-} // max
-
-
+    double large = list[0];
+    for (int i = 1; i < size; i++) {
+        if (list[i] > large) large = list[i];
+    }
+    return large;
+}
